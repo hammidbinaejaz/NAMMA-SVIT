@@ -99,5 +99,3 @@ export default function DbViewClient({ initialData }: DbViewClientProps) {
     </div>
   );
 }
-
-
