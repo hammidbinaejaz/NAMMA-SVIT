@@ -1,154 +1,67 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { RefreshCw, Database, Users, UserCheck, GraduationCap } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface DbViewClientProps {
-  initialData: {
-    students: any[];
-    parents: any[];
-    classes: any[];
+  initialData?: {
+    students?: any[];
+    parents?: any[];
+    classes?: any[];
   };
 }
 
 export default function DbViewClient({ initialData }: DbViewClientProps) {
-  const [data, setData] = useState(initialData);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [students, setStudents] = useState<any[]>(initialData?.students || []);
+  const [loading, setLoading] = useState(!initialData);
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    router.refresh();
-    // Simulate refresh delay
-    setTimeout(() => setLoading(false), 500);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/students?preview=true");
+      const data = await res.json();
+      setStudents(data);
+    } catch (err) {
+      console.error("Failed to fetch DB data:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const TableSkeleton = () => (
-    <div className="space-y-2">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="h-12 bg-white/5 rounded animate-pulse" />
-      ))}
-    </div>
-  );
+  useEffect(() => {
+    if (!initialData) fetchData();
+  }, []);
+
+  if (loading) return <p className="text-gray-400">Loading students...</p>;
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Database className="w-6 h-6 text-[#FFD24A]" />
-          <div>
-            <h1 className="text-2xl font-semibold text-white">Database View</h1>
-            <p className="text-sm text-gray-400">Quick preview of records</p>
-          </div>
-        </div>
-        <button
-          onClick={handleRefresh}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-[#FFD24A]/20 hover:bg-[#FFD24A]/30 text-[#FFD24A] rounded-lg transition-colors disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </button>
-      </div>
-
-      {/* Tables Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Students */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="w-5 h-5 text-[#FFD24A]" />
-            <h2 className="font-semibold text-white">Students ({data.students.length})</h2>
-          </div>
-          {loading ? (
-            <TableSkeleton />
-          ) : (
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {data.students.map((student) => (
-                <div
-                  key={student.id}
-                  className="p-3 bg-white/5 rounded-lg border border-white/10 text-sm"
-                >
-                  <div className="font-medium text-white">
-                    {student.name} {student.surname}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {student.username} • {student.class?.name || "No Class"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-
-        {/* Parents */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <UserCheck className="w-5 h-5 text-[#FFD24A]" />
-            <h2 className="font-semibold text-white">Parents ({data.parents.length})</h2>
-          </div>
-          {loading ? (
-            <TableSkeleton />
-          ) : (
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {data.parents.map((parent) => (
-                <div
-                  key={parent.id}
-                  className="p-3 bg-white/5 rounded-lg border border-white/10 text-sm"
-                >
-                  <div className="font-medium text-white">
-                    {parent.name} {parent.surname}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {parent.username} • {parent.email || "No email"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-
-        {/* Classes */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="backdrop-blur-xl bg-white/5 rounded-xl border border-white/10 p-6"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <GraduationCap className="w-5 h-5 text-[#FFD24A]" />
-            <h2 className="font-semibold text-white">Classes ({data.classes.length})</h2>
-          </div>
-          {loading ? (
-            <TableSkeleton />
-          ) : (
-            <div className="space-y-2 max-h-[400px] overflow-y-auto">
-              {data.classes.map((classItem) => (
-                <div
-                  key={classItem.id}
-                  className="p-3 bg-white/5 rounded-lg border border-white/10 text-sm"
-                >
-                  <div className="font-medium text-white">{classItem.name}</div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {classItem._count.students}/{classItem.capacity} students
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-      </div>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4 text-yellow-400">Database View</h1>
+      <button
+        onClick={fetchData}
+        className="mb-4 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold rounded-lg"
+      >
+        Refresh
+      </button>
+      <table className="min-w-full text-sm text-gray-300">
+        <thead>
+          <tr className="border-b border-gray-700 text-left">
+            <th className="py-2">ID</th>
+            <th>Name</th>
+            <th>Username</th>
+            <th>Class</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map((s) => (
+            <tr key={s.id} className="border-b border-gray-800">
+              <td className="py-2">{s.id}</td>
+              <td>{s.name}</td>
+              <td>{s.username}</td>
+              <td>{s.class?.name || "N/A"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
