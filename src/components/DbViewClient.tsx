@@ -2,16 +2,50 @@
 
 import { useEffect, useState } from "react";
 
+interface Student {
+  id: string;
+  username: string;
+  name: string;
+  surname: string;
+  email: string | null;
+  createdAt: Date;
+  class?: {
+    name: string;
+  } | null;
+  parent?: {
+    name: string;
+    surname: string;
+  } | null;
+}
+
+interface Parent {
+  id: string;
+  username: string;
+  name: string;
+  surname: string;
+  email: string | null;
+  createdAt: Date;
+}
+
+interface Class {
+  id: number;
+  name: string;
+  capacity: number;
+  _count: {
+    students: number;
+  };
+}
+
 interface DbViewClientProps {
   initialData?: {
-    students?: any[];
-    parents?: any[];
-    classes?: any[];
+    students?: Student[];
+    parents?: Parent[];
+    classes?: Class[];
   };
 }
 
 export default function DbViewClient({ initialData }: DbViewClientProps) {
-  const [students, setStudents] = useState<any[]>(initialData?.students || []);
+  const [students, setStudents] = useState<Student[]>(initialData?.students || []);
   const [loading, setLoading] = useState(!initialData);
 
   const fetchData = async () => {
@@ -19,7 +53,7 @@ export default function DbViewClient({ initialData }: DbViewClientProps) {
       setLoading(true);
       const res = await fetch("/api/students?preview=true");
       const data = await res.json();
-      setStudents(data);
+      setStudents(data as Student[]);
     } catch (err) {
       console.error("Failed to fetch DB data:", err);
     } finally {
@@ -65,4 +99,5 @@ export default function DbViewClient({ initialData }: DbViewClientProps) {
     </div>
   );
 }
+
 
