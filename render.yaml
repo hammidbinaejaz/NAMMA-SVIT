@@ -7,16 +7,15 @@ services:
     startCommand: npm run start
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: namma-svit-db
+          property: connectionString
       - key: NODE_ENV
         value: production
       - key: AUTH_SECRET
         generateValue: true
     healthCheckPath: /
-    
-  - type: pgsql
-    name: namma-svit-db
-    plan: starter
-    databaseName: namma_svit
-    user: namma_svit_user
 
+databases:
+  - name: namma-svit-db
+    plan: starter
