@@ -77,3 +77,4 @@ After redeploying:
 
 **The key is:** You must manually add the environment variables in Vercel Dashboard, then redeploy. The `vercel.json` fix alone isn't enough - Vercel needs to see the actual environment variables.
 
+
