@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: namma-svit-erp
+    env: node
+    plan: starter
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_SECRET
+        generateValue: true
+    healthCheckPath: /
+    
+  - type: pgsql
+    name: namma-svit-db
+    plan: starter
+    databaseName: namma_svit
+    user: namma_svit_user
+
