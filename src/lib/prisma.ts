@@ -1,31 +1,13 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from "@prisma/client";
 
-const prismaClientSingleton = () => {
-  return new PrismaClient()
-}
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-declare const globalThis: {
-  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
-} & typeof global;
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: ["query", "info", "warn", "error"],
+  });
 
-const prisma = globalThis.prismaGlobal ?? prismaClientSingleton()
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-// Test database connection on startup
-async function testConnection() {
-  try {
-    await prisma.$connect()
-    console.log('✅ Connected to Neon PostgreSQL')
-  } catch (error) {
-    console.error('❌ Failed to connect to database:', error)
-    process.exit(1)
-  }
-}
-
-// Only test in non-production or on first load
-if (process.env.NODE_ENV !== 'production' || !globalThis.prismaGlobal) {
-  testConnection().catch(console.error)
-}
-
-export default prisma
-
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma
+export default prisma;

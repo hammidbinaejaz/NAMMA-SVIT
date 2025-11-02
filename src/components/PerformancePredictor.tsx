@@ -66,4 +66,3 @@ export function PerformanceBadge({ performance }: { performance: StudentPerforma
     </span>
   );
 }
-
